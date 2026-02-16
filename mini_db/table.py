@@ -14,3 +14,17 @@ class Table:
     def get(self, row_id: int) -> dict | None:
         row = self._rows.get(row_id)
         return row.copy()
+
+    def update_by_id(self, row_id: int, values: dict) -> int | None:
+        updated_row = self.get(row_id)
+        updated_row.update(values)
+
+        self._rows[row_id] = updated_row
+        return row_id
+
+    def update(self, filters: dict, values: dict):
+        for row_id, row in self._rows.items():
+            if all(row.get(k) == v for k,v in filters.items()):
+                self.update_by_id(row_id, values)
+
+            return row
