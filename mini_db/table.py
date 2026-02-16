@@ -5,6 +5,10 @@ class Table:
         self._rows: dict[int, dict] = {}
         self._next_id = 1
 
+    @staticmethod
+    def _matches(row: dict, filters: dict) -> bool:
+        return all(row.get(k) == v for k,v in filters.items())
+
     def insert(self, data: dict) -> int:
         row_id = self._next_id
         self._rows[row_id] = data
@@ -16,6 +20,9 @@ class Table:
         return row.copy()
 
     def update_by_id(self, row_id: int, values: dict) -> int | None:
+        if row_id not in self._rows:
+            return None
+
         updated_row = self.get(row_id)
         updated_row.update(values)
 
@@ -23,8 +30,13 @@ class Table:
         return row_id
 
     def update(self, filters: dict, values: dict):
-        for row_id, row in self._rows.items():
-            if all(row.get(k) == v for k,v in filters.items()):
-                self.update_by_id(row_id, values)
+        mathing_ids = []
 
-            return row
+        for row_id, row in self._rows.items():
+            if self._matches(row, filters):
+                mathing_ids.append(row_id)
+
+        for row_id in mathing_ids:
+            self.update_by_id(row_id, values)
+
+        return len(mathing_ids)
