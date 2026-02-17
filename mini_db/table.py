@@ -1,3 +1,5 @@
+from mini_db.query import Query
+
 
 class Table:
     def __init__(self, table_name: str):
@@ -47,3 +49,6 @@ class Table:
 
         self._rows.pop(row_id)
         return True
+
+    def query(self):
+        return Query(self)
