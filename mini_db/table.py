@@ -31,7 +31,7 @@ class Table:
         mathing_ids = []
 
         for row_id, row in self._rows.items():
-            if Matcher._matches(row, filters):
+            if Matcher._matches(row, [filters]):
                 mathing_ids.append(row_id)
 
         for row_id in mathing_ids:
@@ -45,6 +45,15 @@ class Table:
 
         self._rows.pop(row_id)
         return True
+
+    def select(self, **kwargs) -> list[dict]:
+        result = []
+
+        for row in self._rows.values():
+            if Matcher._matches(row, [kwargs]):
+                result.append(row.copy())
+
+        return result
 
     def query(self):
         return Query(self)
