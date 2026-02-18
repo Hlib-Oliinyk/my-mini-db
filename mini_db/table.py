@@ -3,8 +3,7 @@ from .matcher import Matcher
 
 
 class Table:
-    def __init__(self, table_name: str):
-        self.table_name = table_name
+    def __init__(self):
         self._rows: dict[int, dict] = {}
         self._next_id = 1
 
