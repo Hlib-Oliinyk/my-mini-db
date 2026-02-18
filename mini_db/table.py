@@ -1,4 +1,5 @@
-from mini_db.query import Query
+from .query import Query
+from .matcher import Matcher
 
 
 class Table:
@@ -6,10 +7,6 @@ class Table:
         self.table_name = table_name
         self._rows: dict[int, dict] = {}
         self._next_id = 1
-
-    @staticmethod
-    def _matches(row: dict, filters: dict) -> bool:
-        return all(row.get(k) == v for k,v in filters.items())
 
     def insert(self, data: dict) -> int:
         row_id = self._next_id
@@ -35,7 +32,7 @@ class Table:
         mathing_ids = []
 
         for row_id, row in self._rows.items():
-            if self._matches(row, filters):
+            if Matcher._matches(row, filters):
                 mathing_ids.append(row_id)
 
         for row_id in mathing_ids:

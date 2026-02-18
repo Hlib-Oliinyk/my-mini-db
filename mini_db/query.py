@@ -1,3 +1,5 @@
+from .matcher import Matcher
+
 
 class Query:
     def __init__(self, table):
@@ -9,13 +11,10 @@ class Query:
         return self
 
     def all(self):
-        matches = []
+        result = []
 
         for row in self._table._rows.values():
-            if all(
-                all(row.get(k) == v for k,v in f.items())
-                for f in self._filters
-            ):
-                matches.append(row.copy())
+            if Matcher._matches(row, *self._filters):
+                result.append(row.copy())
 
-        return matches
+        return result
