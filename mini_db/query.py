@@ -5,7 +5,7 @@ class Query:
     def __init__(self, table):
         self._table = table
         self._filters: list[dict] = []
-        self._limit = None
+        self._limit: int | None = None
 
     def filter(self, **kwargs):
         self._filters.append(kwargs)
@@ -24,3 +24,7 @@ class Query:
         for row in self._table._rows.values():
             if Matcher._matches(row, self._filters):
                 return row
+
+    def limit(self, limit_num: int):
+        self._limit = limit_num
+        return self
