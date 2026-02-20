@@ -1,4 +1,5 @@
 from .table import Table
+from .exceptions import TableExists
 
 
 class Database:
@@ -6,6 +7,9 @@ class Database:
         self._tables: dict[str, Table] = {}
 
     def create_table(self, table_name: str) -> Table:
+        if table_name in self._tables.keys():
+            raise TableExists(f"Table '{table_name}' already exists")
+
         table = self._tables[table_name] = Table()
         return table
 

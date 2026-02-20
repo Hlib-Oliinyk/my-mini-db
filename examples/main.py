@@ -13,4 +13,4 @@ users.insert({"name":"Hlib3", "age": 20})
 
 
 print(users.query().limit(3).order_by("age").all())
-print(users.query().order_by("age").limit(3).all())
+print(users.query().order_by("age").filter(name__contains="4").filter(age__gt=10).all())

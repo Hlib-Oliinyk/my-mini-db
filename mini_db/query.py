@@ -1,4 +1,5 @@
 from .matcher import Matcher
+from .exceptions import KeyNotExist
 
 
 class Query:
@@ -32,12 +33,15 @@ class Query:
     def _execute(self) -> list:
         result = self._finder()
 
-        if self._order_by is None:
+        if self._order_by:
+            if result and self._order_by not in result[0]:
+                raise KeyNotExist(f"Key '{self._order_by}' not exists")
+
+            result = sorted(result, key=lambda x: x[self._order_by])
+        if self._limit is not None:
             return result[:self._limit]
 
-        sorted_result = sorted(result, key=lambda x: x[self._order_by])
-
-        return sorted_result[:self._limit]
+        return result
 
     def all(self) -> list:
         return self._execute()
