@@ -12,4 +12,5 @@ users.insert({"name":"Hlib2", "age": 19})
 users.insert({"name":"Hlib3", "age": 20})
 
 
-print(users.query().filter(name__contains="ib").order_by("age").limit(3).all())
+print(users.query().limit(3).order_by("age").all())
+print(users.query().order_by("age").limit(3).all())
