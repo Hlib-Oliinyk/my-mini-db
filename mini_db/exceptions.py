@@ -7,3 +7,9 @@ class TableExists(AppError):
 
 class KeyNotExist(AppError):
     pass
+
+class RowNotExists(AppError):
+    pass
+
+class MultipleObjectReturn(AppError):
+    pass

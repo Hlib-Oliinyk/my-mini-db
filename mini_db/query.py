@@ -1,5 +1,5 @@
 from .matcher import Matcher
-from .exceptions import KeyNotExist
+from .exceptions import KeyNotExist, RowNotExists, MultipleObjectReturn
 
 
 class Query:
@@ -66,3 +66,17 @@ class Query:
         if self._finder():
             return True
         return False
+
+    def get(self, **kwargs) -> dict | None:
+        self.filter(**kwargs)
+        result = Matcher._matches_with_id(self._table._rows, self._filters)
+
+        if len(result) == 0:
+            raise RowNotExists
+        if len(result) > 1:
+            raise MultipleObjectReturn
+
+        return result[0]
+
+
+

@@ -30,3 +30,28 @@ class Matcher:
                         return False
 
         return True
+
+    @staticmethod
+    def _matches_with_id(rows: dict[int, dict], filters: list) -> list:
+        result = []
+
+        row_id = None
+
+        for f in filters:
+            for key, value in f.items():
+                if key == "id":
+                    row_id = value
+
+        if row_id is not None and row_id in rows.keys():
+            row = rows.get(row_id)
+            result.append(row.copy())
+
+        for value in rows.values():
+            if Matcher._matches(value, filters):
+                result.append(value.copy())
+
+        return result
+
+
+
+
