@@ -12,5 +12,5 @@ users.insert({"name":"Hlib2", "age": 19})
 users.insert({"name":"Hlib3", "age": 20})
 
 
-print(users.query().limit(3).order_by("age").all())
-print(users.query().order_by("age").filter(name__contains="4").filter(age__gt=10).all())
+print(users.query().filter(email="a@b.com").exists())
+print(users.query().order_by("name").offset(3).limit(2).all())

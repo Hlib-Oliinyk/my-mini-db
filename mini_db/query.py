@@ -8,6 +8,7 @@ class Query:
         self._filters: list[dict] = []
         self._limit: int | None = None
         self._order_by: str | None = None
+        self._offset: int | None = None
 
     def filter(self, **kwargs):
         self._filters.append(kwargs)
@@ -19,6 +20,10 @@ class Query:
 
     def order_by(self, order_str: str):
         self._order_by = order_str
+        return self
+
+    def offset(self, offset_num: int):
+        self._offset = offset_num
         return self
 
     def _finder(self) -> list:
@@ -38,8 +43,12 @@ class Query:
                 raise KeyNotExist(f"Key '{self._order_by}' not exists")
 
             result = sorted(result, key=lambda x: x[self._order_by])
+
+        if self._offset is not None:
+            result = result[self._offset:]
+
         if self._limit is not None:
-            return result[:self._limit]
+            result = result[:self._limit]
 
         return result
 
@@ -49,3 +58,11 @@ class Query:
     def first(self) -> dict | None:
         result = self._execute()
         return result[0] if result else None
+
+    def count(self) -> int:
+        return len(self._finder())
+
+    def exists(self) -> bool:
+        if self._finder():
+            return True
+        return False
