@@ -12,5 +12,5 @@ users.insert({"name":"Hlib2", "age": 19})
 users.insert({"name":"Hlib3", "age": 20})
 
 
-print(users.query().get(id=2))
+print(users.query().get(id=1))
 print(users.query().order_by("name").all())

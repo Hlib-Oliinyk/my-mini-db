@@ -1,5 +1,6 @@
 from .matcher import Matcher
 from .exceptions import KeyNotExist, RowNotExists, MultipleObjectReturn
+from copy import deepcopy
 
 
 class Query:
@@ -20,21 +21,35 @@ class Query:
 
         return new_row
 
+    def _clone_query(self):
+        query = Query(self._table)
+
+        query._filters = deepcopy(self._filters)
+        query._limit = deepcopy(self._limit)
+        query._order_by = deepcopy(self._order_by)
+        query._offset = deepcopy(self._offset)
+
+        return query
+
     def filter(self, **kwargs):
-        self._filters.append(kwargs)
-        return self
+        new_query = self._clone_query()
+        new_query._filters.append(kwargs)
+        return new_query
 
     def limit(self, limit_num: int):
-        self._limit = limit_num
-        return self
+        new_query = self._clone_query()
+        new_query._limit = limit_num
+        return new_query
 
     def order_by(self, order_str: str):
-        self._order_by = order_str
-        return self
+        new_query = self._clone_query()
+        new_query._order_by = order_str
+        return new_query
 
     def offset(self, offset_num: int):
-        self._offset = offset_num
-        return self
+        new_query = self._clone_query()
+        new_query._offset = offset_num
+        return new_query
 
     def _finder(self) -> list:
         result = []
@@ -79,9 +94,10 @@ class Query:
         return False
 
     def get(self, **kwargs) -> dict | None:
-        self.filter(**kwargs)
+        new_query = self._clone_query()
+        new_query._filters.append(kwargs)
 
-        result = self._finder()
+        result = new_query._finder()
 
         if len(result) == 0:
             raise RowNotExists()
@@ -89,6 +105,3 @@ class Query:
             raise MultipleObjectReturn()
 
         return result[0]
-
-
-
