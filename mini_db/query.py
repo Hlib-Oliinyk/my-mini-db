@@ -10,6 +10,16 @@ class Query:
         self._order_by: str | None = None
         self._offset: int | None = None
 
+    @staticmethod
+    def _clone_row(row_id: int, row_value: dict) -> dict:
+        new_row = {}
+
+        new_row["id"] = row_id
+        for key, value in row_value.items():
+            new_row[key] = value
+
+        return new_row
+
     def filter(self, **kwargs):
         self._filters.append(kwargs)
         return self
@@ -29,9 +39,10 @@ class Query:
     def _finder(self) -> list:
         result = []
 
-        for row in self._table._rows.values():
+        for row_id, row_value in self._table._rows.items():
+            row = Query._clone_row(row_id, row_value)
             if Matcher._matches(row, self._filters):
-                result.append(row.copy())
+                result.append(row)
 
         return result
 
@@ -69,12 +80,13 @@ class Query:
 
     def get(self, **kwargs) -> dict | None:
         self.filter(**kwargs)
-        result = Matcher._matches_with_id(self._table._rows, self._filters)
+
+        result = self._finder()
 
         if len(result) == 0:
-            raise RowNotExists
+            raise RowNotExists()
         if len(result) > 1:
-            raise MultipleObjectReturn
+            raise MultipleObjectReturn()
 
         return result[0]
 
