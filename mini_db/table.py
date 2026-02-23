@@ -1,11 +1,13 @@
 from .query import Query
 from .matcher import Matcher
+from .index import Index
 
 
 class Table:
     def __init__(self):
         self._rows: dict[int, dict] = {}
         self._next_id = 1
+        self._indexes: dict[str, Index] = {}
 
     def insert(self, data: dict) -> int:
         row_id = self._next_id
