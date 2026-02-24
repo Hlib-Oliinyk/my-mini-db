@@ -59,3 +59,10 @@ class Table:
 
     def query(self):
         return Query(self)
+
+    def create_index(self, field: str):
+        index = Index(field)
+        for row_id, row_value in self._rows.items():
+            index.add(row_id, row_value)
+
+        self._indexes[field] = index
