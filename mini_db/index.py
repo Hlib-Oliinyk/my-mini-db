@@ -12,3 +12,20 @@ class Index:
                 self.storage[row_value[self.field]].add(row_id)
             else:
                 self.storage[row_value[self.field]] = {row_id}
+
+    def remove(self, row_id: int, row_value: dict) -> bool:
+        if self.field in row_value:
+            value = self.storage.get(row_value[self.field])
+
+            if value is None:
+                return False
+
+            if row_id not in value:
+                return False
+
+            self.storage[row_value[self.field]].discard(row_id)
+
+            if not self.storage[row_value[self.field]]:
+                del self.storage[row_value[self.field]]
+
+            return True

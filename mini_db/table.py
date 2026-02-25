@@ -71,9 +71,9 @@ class Table:
 
         self._indexes[field] = index
 
-    def remove_index(self, filed: str) -> bool:
-        if filed not in self._indexes:
+    def remove_index(self, field: str) -> bool:
+        if field not in self._indexes:
             return False
 
-        self._indexes.pop(filed)
+        self._indexes.pop(field)
         return True
