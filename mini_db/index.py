@@ -29,3 +29,9 @@ class Index:
                 del self.storage[row_value[self.field]]
 
             return True
+
+    def update(self, row_id: int, old_row_value: dict, new_row_value: dict):
+        if self.field in new_row_value and self.field in old_row_value:
+            if old_row_value[self.field] != new_row_value[self.field]:
+                self.remove(row_id, old_row_value)
+                self.add(row_id, new_row_value)

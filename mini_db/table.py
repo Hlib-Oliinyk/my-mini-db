@@ -26,24 +26,28 @@ class Table:
         row = self._rows.get(row_id)
         return row.copy()
 
-    def update_by_id(self, row_id: int, values: dict) -> int | None:
-        updated_row = self.get(row_id)
-        updated_row.update(values)
+    def update_by_id(self, row_id: int, new_values: dict) -> int | None:
+        row = self.get(row_id)
 
-        self._rows[row_id] = updated_row
+        for index in self._indexes.values():
+            index.update(row_id, row, new_values)
+
+        row.update(new_values)
+        self._rows[row_id] = row
+
         return row_id
 
     def update(self, filters: dict, values: dict) -> int:
-        mathing_ids = []
+        matching_ids = []
 
         for row_id, row in self._rows.items():
             if Matcher._matches(row, [filters]):
-                mathing_ids.append(row_id)
+                matching_ids.append(row_id)
 
-        for row_id in mathing_ids:
+        for row_id in matching_ids:
             self.update_by_id(row_id, values)
 
-        return len(mathing_ids)
+        return len(matching_ids)
 
     def delete_by_id(self, row_id: int) -> bool:
         if row_id not in self._rows:
