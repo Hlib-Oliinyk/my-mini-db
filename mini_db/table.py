@@ -13,6 +13,10 @@ class Table:
         row_id = self._next_id
         self._rows[row_id] = data
         self._next_id += 1
+
+        for index in self._indexes.values():
+            index.add(row_id, data)
+
         return row_id
 
     def get(self, row_id: int) -> dict | None:
@@ -66,3 +70,10 @@ class Table:
             index.add(row_id, row_value)
 
         self._indexes[field] = index
+
+    def remove_index(self, filed: str) -> bool:
+        if filed not in self._indexes:
+            return False
+
+        self._indexes.pop(filed)
+        return True

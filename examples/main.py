@@ -12,3 +12,5 @@ users.insert({"name":"Hlib2", "age": 19})
 users.insert({"name":"Hlib3", "age": 20})
 
 users.create_index("name")
+
+users.insert({"name":"Hlib3", "age": 26})
