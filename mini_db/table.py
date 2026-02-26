@@ -1,5 +1,4 @@
 from .query import Query
-from .matcher import Matcher
 from .index import Index
 
 
@@ -37,33 +36,17 @@ class Table:
 
         return row_id
 
-    def update(self, filters: dict, values: dict) -> int:
-        matching_ids = []
-
-        for row_id, row in self._rows.items():
-            if Matcher._matches(row, [filters]):
-                matching_ids.append(row_id)
-
-        for row_id in matching_ids:
-            self.update_by_id(row_id, values)
-
-        return len(matching_ids)
-
     def delete_by_id(self, row_id: int) -> bool:
         if row_id not in self._rows:
             return False
 
+        row = self.get(row_id)
+
+        for index in self._indexes.values():
+            index.remove(row_id, row)
+
         self._rows.pop(row_id)
         return True
-
-    def select(self, **kwargs) -> list[dict]:
-        result = []
-
-        for row in self._rows.values():
-            if Matcher._matches(row, [kwargs]):
-                result.append(row.copy())
-
-        return result
 
     def query(self):
         return Query(self)

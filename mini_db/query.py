@@ -31,6 +31,37 @@ class Query:
 
         return query
 
+    def _get_candidate_ids(self, filters: list) -> set[int]:
+        candidate_ids = set()
+        used_index = False
+
+        for _filter in filters:
+            for key, value in _filter.items():
+                if "__" in key:
+                    field, operator = key.split("__")
+                else:
+                    field = key
+                    operator = "eq"
+
+                if operator != "eq":
+                    continue
+
+                if field not in self._table._indexes:
+                    continue
+
+                if field in self._table._indexes and value in self._table._indexes[key].storage:
+                    used_index = True
+
+                    if len(candidate_ids) == 0:
+                        candidate_ids = self._table._indexes[key].storage[value].copy()
+                    else:
+                        candidate_ids.intersection_update(self._table._indexes[key].storage[value])
+
+        if used_index:
+            return candidate_ids
+        else:
+            return set(self._table._rows.keys())
+
     def filter(self, **kwargs):
         new_query = self._clone_query()
         new_query._filters.append(kwargs)
@@ -53,9 +84,10 @@ class Query:
 
     def _finder(self) -> list:
         result = []
+        candidate_ids = self._get_candidate_ids(self._filters)
 
-        for row_id, row_value in self._table._rows.items():
-            row = Query._clone_row(row_id, row_value)
+        for row_id in candidate_ids:
+            row = self._table._rows[row_id]
             if Matcher._matches(row, self._filters):
                 result.append(row)
 
@@ -105,3 +137,17 @@ class Query:
             raise MultipleObjectReturn()
 
         return result[0]
+
+    def update(self, filters: dict, values: dict) -> int:
+        matching_ids = []
+        candidate_ids = self._get_candidate_ids([filters])
+
+        for row_id in candidate_ids:
+            row = self._table._rows[row_id]
+            if Matcher._matches(row, [filters]):
+                matching_ids.append(row_id)
+
+        for row_id in matching_ids:
+            self._table.update_by_id(row_id, values)
+
+        return len(matching_ids)
