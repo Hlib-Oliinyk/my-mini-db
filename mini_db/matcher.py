@@ -30,3 +30,13 @@ class Matcher:
                         return False
 
         return True
+
+    @staticmethod
+    def _match_operators(_filter: dict):
+        for key, value in _filter.items():
+            if "__" in key:
+                field, operator = key.split("__")
+            else:
+                operator = "eq"
+
+            return operator, value

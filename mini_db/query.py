@@ -35,27 +35,20 @@ class Query:
         candidate_ids = set()
         used_index = False
 
-        for _filter in filters:
-            for key, value in _filter.items():
-                if "__" in key:
-                    field, operator = key.split("__")
+        for f in filters:
+            operator, value = Matcher._match_operators(f)
+
+            for index in self._table._indexes.values():
+                find = index.find(operator, value)
+
+                if find is None:
+                    continue
+
+                used_index = True
+                if len(candidate_ids) == 0:
+                    candidate_ids = find
                 else:
-                    field = key
-                    operator = "eq"
-
-                if operator != "eq":
-                    continue
-
-                if field not in self._table._indexes:
-                    continue
-
-                if field in self._table._indexes and value in self._table._indexes[key].storage:
-                    used_index = True
-
-                    if len(candidate_ids) == 0:
-                        candidate_ids = self._table._indexes[key].storage[value].copy()
-                    else:
-                        candidate_ids.intersection_update(self._table._indexes[key].storage[value])
+                    candidate_ids.intersection(find)
 
         if used_index:
             return candidate_ids
@@ -148,6 +141,6 @@ class Query:
                 matching_ids.append(row_id)
 
         for row_id in matching_ids:
-            self._table.update_by_id(row_id, values)
+            self._table.update(row_id, values)
 
         return len(matching_ids)
