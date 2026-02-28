@@ -18,11 +18,11 @@ class Matcher:
                         return False
 
                 if operator == "gt":
-                    if row_field is None or row_field < value:
+                    if row_field is None or row_field <= value:
                         return False
 
                 if operator == "lt":
-                    if row_field is None or row_field > value:
+                    if row_field is None or row_field >= value:
                         return False
 
                 if operator == "contains":
@@ -37,6 +37,7 @@ class Matcher:
             if "__" in key:
                 field, operator = key.split("__")
             else:
+                field = key
                 operator = "eq"
 
-            return operator, value
+            return operator, field, value

@@ -35,10 +35,11 @@ class Query:
         candidate_ids = set()
         used_index = False
 
-        for f in filters:
-            operator, value = Matcher._match_operators(f)
+        for _filter in filters:
+            operator, field, value = Matcher._match_operators(_filter)
 
-            for index in self._table._indexes.values():
+            if field in self._table._indexes:
+                index = self._table._indexes[field]
                 find = index.find(operator, value)
 
                 if find is None:
