@@ -52,5 +52,16 @@ class RangeIndex(IndexBase):
 
             for candidate in candidate_values:
                 result.update(self.storage[candidate])
-
             return result
+
+        if operator == "lt":
+            num_index = bisect.bisect_left(self.sorted_keys, value)
+            candidate_values = self.sorted_keys[:num_index]
+
+            result = set()
+
+            for candidate in candidate_values:
+                result.update(self.storage[candidate])
+            return result
+
+        return set()

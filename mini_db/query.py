@@ -33,6 +33,8 @@ class Query:
 
     def _get_candidate_ids(self, filters: list) -> set[int]:
         candidate_ids = set()
+        indexes_find_value = {}
+
         used_index = False
 
         for _filter in filters:
@@ -42,14 +44,20 @@ class Query:
                 index = self._table._indexes[field]
                 find = index.find(operator, value)
 
+                indexes_find_value["__".join([field, operator])] = find
+
                 if find is None:
                     continue
 
-                used_index = True
+        if len(indexes_find_value) != 0:
+            used_index = True
+            min_index_value = min(indexes_find_value.values(), key=len)
+
+            for index_value in indexes_find_value.values():
                 if len(candidate_ids) == 0:
-                    candidate_ids = find
+                    candidate_ids = min_index_value
                 else:
-                    candidate_ids.intersection(find)
+                    candidate_ids = candidate_ids.intersection(index_value)
 
         if used_index:
             return candidate_ids
