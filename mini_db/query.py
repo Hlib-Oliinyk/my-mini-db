@@ -49,6 +49,9 @@ class Query:
                 if find is None:
                     continue
 
+                if len(find) == 0:
+                    return set()
+
         if len(indexes_find_value) != 0:
             used_index = True
             min_index_value = min(indexes_find_value.values(), key=len)
