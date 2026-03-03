@@ -1,6 +1,9 @@
+from copy import deepcopy
+
+from .indexes.range_index import RangeIndex
 from .matcher import Matcher
 from .exceptions import KeyNotExist, RowNotExists, MultipleObjectReturn
-from copy import deepcopy
+from .utils import timer
 
 
 class Query:
@@ -94,24 +97,47 @@ class Query:
         for row_id in candidate_ids:
             row = self._table._rows[row_id]
             if Matcher._matches(row, self._filters):
+                row["row_id"] = row_id
                 result.append(row)
 
         return result
 
+    @timer
     def _execute(self) -> list:
         result = self._finder()
+        find_ids = set(row["row_id"] for row in result)
+        sorted_result = []
+
 
         if self._order_by:
             if result and self._order_by not in result[0]:
                 raise KeyNotExist(f"Key '{self._order_by}' not exists")
 
-            result = sorted(result, key=lambda x: x[self._order_by])
+            if self._order_by in self._table._indexes:
+                index = self._table._indexes[self._order_by]
 
-        if self._offset is not None:
-            result = result[self._offset:]
+                if type(index) == RangeIndex:
+                    for key in index.sorted_keys:
+                        for row_id in index.storage[key]:
+                            if row_id in find_ids:
+                                if self._limit:
+                                    if len(sorted_result) == self._limit:
+                                        break
+                                    else:
+                                        sorted_result.append(self._table._rows[row_id])
+                                else:
+                                    sorted_result.append(self._table._rows[row_id])
+
+                result = sorted_result
+
+            else:
+                result = sorted(result, key=lambda x: x[self._order_by])
 
         if self._limit is not None:
             result = result[:self._limit]
+
+        if self._offset is not None:
+            result = result[self._offset:]
 
         return result
 
