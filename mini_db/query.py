@@ -108,6 +108,7 @@ class Query:
         find_ids = set(row["row_id"] for row in result)
         sorted_result = []
 
+        stop = False
 
         if self._order_by:
             if result and self._order_by not in result[0]:
@@ -118,26 +119,28 @@ class Query:
 
                 if type(index) == RangeIndex:
                     for key in index.sorted_keys:
-                        for row_id in index.storage[key]:
-                            if row_id in find_ids:
-                                if self._limit:
-                                    if len(sorted_result) == self._limit:
-                                        break
+                        if not stop:
+                            for row_id in index.storage[key]:
+                                if row_id in find_ids:
+                                    if self._limit:
+                                        if len(sorted_result) == self._limit:
+                                            stop = True
+                                            break
+                                        else:
+                                            sorted_result.append(self._table._rows[row_id])
                                     else:
                                         sorted_result.append(self._table._rows[row_id])
-                                else:
-                                    sorted_result.append(self._table._rows[row_id])
 
                 result = sorted_result
 
             else:
                 result = sorted(result, key=lambda x: x[self._order_by])
 
-        if self._limit is not None:
-            result = result[:self._limit]
-
         if self._offset is not None:
             result = result[self._offset:]
+
+        if self._limit is not None:
+            result = result[:self._limit]
 
         return result
 
