@@ -102,46 +102,64 @@ class Query:
 
         return result
 
-    @timer
-    def _execute(self) -> list:
-        result = self._finder()
-        find_ids = set(row["row_id"] for row in result)
-        sorted_result = []
+    def _count_targets(self) -> int:
+        target_count = None
 
-        stop = False
+        if self._limit is not None:
+            if self._offset is not None:
+                target_count = self._limit + self._offset
+            else:
+                target_count = self._limit
+
+        return target_count
+
+    def _apply_ordering(self, items: list) -> list:
+        sorted_items = []
+        find_ids = set(row["row_id"] for row in items)
+
+        target_count = self._count_targets()
 
         if self._order_by:
-            if result and self._order_by not in result[0]:
+            if items and self._order_by not in items[0]:
                 raise KeyNotExist(f"Key '{self._order_by}' not exists")
 
             if self._order_by in self._table._indexes:
                 index = self._table._indexes[self._order_by]
 
-                if type(index) == RangeIndex:
+                if isinstance(index, RangeIndex):
                     for key in index.sorted_keys:
-                        if not stop:
-                            for row_id in index.storage[key]:
-                                if row_id in find_ids:
-                                    if self._limit:
-                                        if len(sorted_result) == self._limit:
-                                            stop = True
-                                            break
-                                        else:
-                                            sorted_result.append(self._table._rows[row_id])
-                                    else:
-                                        sorted_result.append(self._table._rows[row_id])
+                        for row_id in index.storage[key]:
+                            if row_id in find_ids:
+                                sorted_items.append(self._table._rows[row_id])
 
-                result = sorted_result
+                                if target_count is not None and len(sorted_items) >= target_count:
+                                    break
 
+                        if target_count is not None and len(sorted_items) >= target_count:
+                            break
+
+                    items = sorted_items
             else:
-                result = sorted(result, key=lambda x: x[self._order_by])
+                items = sorted(items, key=lambda x: x[self._order_by])
 
+        return items
+
+    def _apply_offset(self, items: list) -> list:
         if self._offset is not None:
-            result = result[self._offset:]
+            items = items[self._offset:]
+        return items
 
+    def _apply_limit(self, items: list) -> list:
         if self._limit is not None:
-            result = result[:self._limit]
+            items = items[:self._limit]
+        return items
 
+    @timer
+    def _execute(self) -> list:
+        result = self._finder()
+        result = self._apply_ordering(result)
+        result = self._apply_offset(result)
+        result = self._apply_limit(result)
         return result
 
     def all(self) -> list:

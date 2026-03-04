@@ -18,7 +18,6 @@ class RangeIndex(IndexBase):
             self.storage[value] = {row_id}
             bisect.insort(self.sorted_keys, value)
 
-
     def remove(self, row_id: int, value: Any) -> bool:
         if value not in self.storage:
             return False
