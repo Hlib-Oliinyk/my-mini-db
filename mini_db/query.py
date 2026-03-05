@@ -11,7 +11,7 @@ class Query:
         self._table = table
         self._filters: list[dict] = []
         self._limit: int | None = None
-        self._order_by: str | None = None
+        self._order_by: (str | None, str | None) = None
         self._offset: int | None = None
 
     @staticmethod
@@ -80,9 +80,9 @@ class Query:
         new_query._limit = limit_num
         return new_query
 
-    def order_by(self, order_str: str):
+    def order_by(self, order_field: str, order_type: str | None = None):
         new_query = self._clone_query()
-        new_query._order_by = order_str
+        new_query._order_by = (order_field, order_type)
         return new_query
 
     def offset(self, offset_num: int):
@@ -120,11 +120,13 @@ class Query:
         target_count = self._count_targets()
 
         if self._order_by:
-            if items and self._order_by not in items[0]:
-                raise KeyNotExist(f"Key '{self._order_by}' not exists")
+            order_by_field = self._order_by[0]
+
+            if items and order_by_field not in items[0]:
+                raise KeyNotExist(f"Key '{order_by_field}' not exists")
 
             if self._order_by in self._table._indexes:
-                index = self._table._indexes[self._order_by]
+                index = self._table._indexes[order_by_field]
 
                 if isinstance(index, RangeIndex):
                     for key in index.sorted_keys:
@@ -140,7 +142,7 @@ class Query:
 
                     items = sorted_items
             else:
-                items = sorted(items, key=lambda x: x[self._order_by])
+                items = sorted(items, key=lambda x: x[order_by_field])
 
         return items
 
@@ -154,12 +156,18 @@ class Query:
             items = items[:self._limit]
         return items
 
+    def _apply_order_type(self, items: list) -> list:
+        if self._order_by[1] is not None and self._order_by[1] == "desc":
+            items =  items[::-1]
+        return items
+
     @timer
     def _execute(self) -> list:
         result = self._finder()
         result = self._apply_ordering(result)
         result = self._apply_offset(result)
         result = self._apply_limit(result)
+        result = self._apply_order_type(result)
         return result
 
     def all(self) -> list:
