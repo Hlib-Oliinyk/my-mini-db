@@ -165,12 +165,39 @@ class Query:
             items = items[:self._limit]
         return items
 
+    def _build_plan(self) -> list:
+        plan = []
+
+        plan.append("finder")
+
+        if self._order_by:
+            plan.append("order_by")
+        if self._offset is not None:
+            plan.append("offset")
+        if self._limit is not None:
+            plan.append("limit")
+
+        return plan
+
+    def _run_plan(self, plan: list) -> list:
+        result = None
+
+        for step in plan:
+            if step == "finder":
+                result = self._finder()
+            elif step == "order_by":
+                result = self._apply_ordering(result)
+            elif step == "offset":
+                result = self._apply_offset(result)
+            elif step == "limit":
+                result = self._apply_limit(result)
+
+        return result
+
     @timer
     def _execute(self) -> list:
-        result = self._finder()
-        result = self._apply_ordering(result)
-        result = self._apply_offset(result)
-        result = self._apply_limit(result)
+        plan = self._build_plan()
+        result = self._run_plan(plan)
         return result
 
     def all(self) -> list:

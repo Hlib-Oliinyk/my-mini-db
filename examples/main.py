@@ -22,4 +22,4 @@ users.create_index("name", index_type="hash")
 # for i in users._indexes.values():
 #     print(i.storage)
 
-print(users.query().filter(age__gt=19).order_by("age", "desc").limit(2).offset(1).all())
+print(users.query().filter(age__gt=19).order_by("age").limit(2).offset(1).all())
