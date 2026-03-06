@@ -204,6 +204,8 @@ class Query:
     def _build_plan(self) -> list:
         plan = []
 
+        plan.append("finder")
+
         if self._order_by:
             order_by_filed = self._order_by[0]
 
@@ -211,12 +213,10 @@ class Query:
                 index = self._table._indexes[order_by_filed]
 
                 if isinstance(index, RangeIndex):
+                    plan.remove("finder")
                     plan.append("index_scan")
-                else:
-                    plan.append("finder")
-                    plan.append("order_by")
-        else:
-            plan.append("finder")
+            else:
+                plan.append("order_by")
 
         if self._offset is not None:
             plan.append("offset")
