@@ -95,10 +95,46 @@ class Query:
         candidate_ids = self._get_candidate_ids(self._filters)
 
         for row_id in candidate_ids:
-            row = self._table._rows[row_id]
+            row = self._table._rows[row_id].copy()
+
             if Matcher._matches(row, self._filters):
                 row["row_id"] = row_id
                 result.append(row)
+
+        return result
+
+    def _index_scan(self):
+        result_ids = []
+        target_count = self._count_targets()
+
+        index = self._table._indexes[self._order_by[0]]
+        sorted_keys = index.sorted_keys
+
+        if self._order_by[1] == "desc":
+            sorted_keys = reversed(sorted_keys)
+
+        for key in sorted_keys:
+            row_ids = index.storage[key]
+
+            for row_id in row_ids:
+
+                if self._filters:
+                    if Matcher._matches(self._table._rows[row_id], self._filters):
+                        result_ids.append(row_id)
+                else:
+                    result_ids.append(row_id)
+
+                if len(result_ids) >= target_count:
+                    break
+
+            if len(result_ids) >= target_count:
+                break
+
+        result = []
+        for row_id in result_ids:
+            row = self._table._rows[row_id].copy()
+            row["row_id"] = row_id
+            result.append(row)
 
         return result
 
@@ -168,10 +204,20 @@ class Query:
     def _build_plan(self) -> list:
         plan = []
 
-        plan.append("finder")
-
         if self._order_by:
-            plan.append("order_by")
+            order_by_filed = self._order_by[0]
+
+            if order_by_filed in self._table._indexes:
+                index = self._table._indexes[order_by_filed]
+
+                if isinstance(index, RangeIndex):
+                    plan.append("index_scan")
+                else:
+                    plan.append("finder")
+                    plan.append("order_by")
+        else:
+            plan.append("finder")
+
         if self._offset is not None:
             plan.append("offset")
         if self._limit is not None:
@@ -185,6 +231,8 @@ class Query:
         for step in plan:
             if step == "finder":
                 result = self._finder()
+            elif step == "index_scan":
+                result = self._index_scan()
             elif step == "order_by":
                 result = self._apply_ordering(result)
             elif step == "offset":
