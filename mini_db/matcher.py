@@ -41,3 +41,15 @@ class Matcher:
                 operator = "eq"
 
             return operator, field, value
+
+    @staticmethod
+    def _filter_map(filters: list) -> dict:
+        result = {}
+
+        for _filter in filters:
+            key = list(_filter.keys())[0]
+            value = list(_filter.values())[0]
+
+            result[key] = value
+
+        return result

@@ -1,3 +1,4 @@
+from .indexes.composite_index import CompositeIndex
 from .indexes.factory import IndexFactory
 from .indexes.index_base import IndexBase
 from .query import Query
@@ -32,10 +33,24 @@ class Table:
         row = self.get(row_id)
 
         for field, index in self._indexes.items():
-            if field in row and field in new_values:
-                if row[field] != new_values[field]:
-                    index.remove(row_id, row[field])
-                    index.add(row_id, new_values[field])
+
+            if isinstance(index, CompositeIndex):
+                for field_part in field:
+
+                    if field_part in row and field_part in new_values:
+                        if row[field_part] != new_values[field_part]:
+
+                            value = tuple(row[f] for f in field)
+                            index.remove(row_id, value)
+
+                            new_tuple = tuple(new_values.get(f, row[f]) for f in field)
+                            index.add(row_id, new_tuple)
+
+            else:
+                if field in row and field in new_values:
+                    if row[field] != new_values[field]:
+                        index.remove(row_id, row[field])
+                        index.add(row_id, new_values[field])
 
         row.update(new_values)
         self._rows[row_id] = row
@@ -49,8 +64,13 @@ class Table:
         row = self.get(row_id)
 
         for field, index in self._indexes.items():
-            value = row[field]
-            index.remove(row_id, value)
+
+            if isinstance(index, CompositeIndex):
+                value = tuple(row[f] for f in field)
+                index.remove(row_id, value)
+            else:
+                value = row[field]
+                index.remove(row_id, value)
 
         self._rows.pop(row_id)
         return True
@@ -58,12 +78,17 @@ class Table:
     def query(self):
         return Query(self)
 
-    def create_index(self, field: str, index_type: str):
+    def create_index(self, field: str | tuple, index_type: str):
         index = IndexFactory.create(index_type)
 
         for row_id, row_value in self._rows.items():
-            value = row_value[field]
-            index.add(row_id, value)
+
+            if isinstance(field, tuple):
+                value = tuple(row_value[f] for f in field)
+                index.add(row_id, value)
+            else:
+                value = row_value[field]
+                index.add(row_id, value)
 
         self._indexes[field] = index
 

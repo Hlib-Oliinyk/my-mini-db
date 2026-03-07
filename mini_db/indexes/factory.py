@@ -1,11 +1,13 @@
 from .hash_index import HashIndex
 from .range_index import RangeIndex
+from .composite_index import CompositeIndex
 
 
 class IndexFactory:
     _registry = {
         "hash": HashIndex,
-        "range": RangeIndex
+        "range": RangeIndex,
+        "composite": CompositeIndex
     }
 
     @classmethod

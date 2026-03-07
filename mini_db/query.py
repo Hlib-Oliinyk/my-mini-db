@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from .indexes.composite_index import CompositeIndex
 from .indexes.range_index import RangeIndex
 from .matcher import Matcher
 from .exceptions import KeyNotExist, RowNotExists, MultipleObjectReturn
@@ -37,8 +38,17 @@ class Query:
     def _get_candidate_ids(self, filters: list) -> set[int]:
         candidate_ids = set()
         indexes_find_value = {}
-
         used_index = False
+        filter_map = Matcher._filter_map(filters)
+
+        for index_field, index in self._table._indexes.items():
+
+            if isinstance(index, CompositeIndex):
+                if all(key in filter_map for key in index_field):
+
+                    value = tuple(filter_map.get(field) for field in index_field)
+                    find = index.find("eq", value)
+                    return find
 
         for _filter in filters:
             operator, field, value = Matcher._match_operators(_filter)
@@ -104,7 +114,7 @@ class Query:
         return result
 
     def _index_scan(self):
-        result_ids = []
+        result = []
         target_count = self._count_targets()
 
         index = self._table._indexes[self._order_by[0]]
@@ -120,21 +130,19 @@ class Query:
 
                 if self._filters:
                     if Matcher._matches(self._table._rows[row_id], self._filters):
-                        result_ids.append(row_id)
+                        row = self._table._rows[row_id].copy()
+                        row["row_id"] = row_id
+                        result.append(row)
                 else:
-                    result_ids.append(row_id)
+                    row = self._table._rows[row_id].copy()
+                    row["row_id"] = row_id
+                    result.append(row)
 
-                if len(result_ids) >= target_count:
+                if len(result) >= target_count:
                     break
 
-            if len(result_ids) >= target_count:
+            if len(result) >= target_count:
                 break
-
-        result = []
-        for row_id in result_ids:
-            row = self._table._rows[row_id].copy()
-            row["row_id"] = row_id
-            result.append(row)
 
         return result
 
@@ -254,6 +262,10 @@ class Query:
     def first(self) -> dict | None:
         result = self._execute()
         return result[0] if result else None
+
+    def explain(self) -> list:
+        build_plan = self._build_plan()
+        return build_plan
 
     def count(self) -> int:
         return len(self._finder())
