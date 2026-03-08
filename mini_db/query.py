@@ -87,6 +87,10 @@ class Query:
 
     def limit(self, limit_num: int):
         new_query = self._clone_query()
+
+        if limit_num < 0:
+            limit_num = -limit_num
+
         new_query._limit = limit_num
         return new_query
 
@@ -97,6 +101,10 @@ class Query:
 
     def offset(self, offset_num: int):
         new_query = self._clone_query()
+
+        if offset_num < 0:
+            offset_num = -offset_num
+
         new_query._offset = offset_num
         return new_query
 
