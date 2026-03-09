@@ -2,6 +2,7 @@ from .indexes.composite_index import CompositeIndex
 from .indexes.factory import IndexFactory
 from .indexes.index_base import IndexBase
 from .query import Query
+from .exceptions import IndexAlreadyExists
 
 
 class Table:
@@ -15,10 +16,16 @@ class Table:
         self._rows[row_id] = data
         self._next_id += 1
 
-        for field, index in self._indexes.values():
-            if field in self._rows[row_id]:
-                value = self._rows[row_id][field]
-                index.add(row_id, value)
+        for field, index in self._indexes.items():
+
+            if isinstance(index, CompositeIndex):
+                if all(self._rows[row_id].get(key) for key in field):
+                    value = tuple(self._rows[row_id].values())
+                    index.add(row_id, value)
+            else:
+                if field in self._rows[row_id]:
+                    value = self._rows[row_id][field]
+                    index.add(row_id, value)
 
         return row_id
 
@@ -79,6 +86,9 @@ class Table:
         return Query(self)
 
     def create_index(self, field: str | tuple, index_type: str):
+        if field in self._indexes:
+            raise IndexAlreadyExists()
+
         index = IndexFactory.create(index_type)
 
         for row_id, row_value in self._rows.items():

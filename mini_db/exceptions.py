@@ -13,3 +13,6 @@ class RowNotExists(AppError):
 
 class MultipleObjectReturn(AppError):
     pass
+
+class IndexAlreadyExists(AppError):
+    pass
