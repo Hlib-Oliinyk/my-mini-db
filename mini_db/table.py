@@ -9,7 +9,7 @@ class Table:
     def __init__(self):
         self._rows: dict[int, dict] = {}
         self._next_id = 1
-        self._indexes: dict[str, IndexBase] = {}
+        self._indexes: dict[str | tuple, IndexBase] = {}
 
     def insert(self, data: dict) -> int:
         row_id = self._next_id

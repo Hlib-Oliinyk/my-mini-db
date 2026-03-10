@@ -6,6 +6,7 @@ db = Database()
 users = db.create_table("users")
 
 users.insert({"name":"Hlib", "age": 20})
+users.insert({"name":"Hlib", "age": 20})
 # users.insert({"name":"Hlib", "age": 19})
 # users.insert({"name":"Hlib", "age": 22})
 # users.insert({"name":"Hlib1", "age": 18})
@@ -15,13 +16,21 @@ users.insert({"name":"Hlib", "age": 20})
 # users.create_index("name", index_type="hash")
 users.create_index(("name", "age"), index_type="composite")
 
-for i in users._indexes.values():
-    print(i.storage)
+index = users._indexes[("name", "age")]
+
+print(index.storage)
+
+# for i in users._indexes.values():
+#     print(i.storage)
 
 # users.query().update({"name":"Hlib"}, {"name":"Glib"})
-users.insert({"name":"Hlib", "age": 20})
+# users.insert({"name":"Hlib", "age": 20})
 
-for i in users._indexes.values():
-    print(i.storage)
+users.delete(1)
+users.delete(2)
+
+print(index.storage)
+# for i in users._indexes.values():
+#     print(i.storage)
 
 print(users.query().all())
