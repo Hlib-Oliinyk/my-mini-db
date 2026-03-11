@@ -18,11 +18,11 @@ class Matcher:
                         return False
 
                 if operator == "gt":
-                    if row_field is None or row_field < value:
+                    if row_field is None or row_field <= value:
                         return False
 
                 if operator == "lt":
-                    if row_field is None or row_field > value:
+                    if row_field is None or row_field >= value:
                         return False
 
                 if operator == "contains":
@@ -30,3 +30,26 @@ class Matcher:
                         return False
 
         return True
+
+    @staticmethod
+    def _match_operators(_filter: dict):
+        for key, value in _filter.items():
+            if "__" in key:
+                field, operator = key.split("__")
+            else:
+                field = key
+                operator = "eq"
+
+            return operator, field, value
+
+    @staticmethod
+    def _filter_map(filters: list) -> dict:
+        result = {}
+
+        for _filter in filters:
+            key = list(_filter.keys())[0]
+            value = list(_filter.values())[0]
+
+            result[key] = value
+
+        return result
