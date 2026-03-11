@@ -14,6 +14,7 @@ class Query:
         self._limit: int | None = None
         self._order_by: (str | None, str | None) = None
         self._offset: int | None = None
+        self._selected_fields: list[tuple] = []
 
     @staticmethod
     def _clone_row(row_id: int, row_value: dict) -> dict:
@@ -32,6 +33,7 @@ class Query:
         query._limit = deepcopy(self._limit)
         query._order_by = deepcopy(self._order_by)
         query._offset = deepcopy(self._offset)
+        query._selected_fields = deepcopy(self._selected_fields)
 
         return query
 
@@ -106,6 +108,12 @@ class Query:
             offset_num = -offset_num
 
         new_query._offset = offset_num
+        return new_query
+
+    def select(self, *args):
+        new_query = self._clone_query()
+        for arg in args:
+            new_query._selected_fields.append(arg)
         return new_query
 
     def _finder(self) -> list:
@@ -217,6 +225,16 @@ class Query:
             items = items[:self._limit]
         return items
 
+    def _apply_select(self, items: list) -> list:
+        if len(self._selected_fields) != 0:
+            if len(self._selected_fields) == 1 and all([item.get(key) for key in item] for item in items):
+                return []
+
+            items = [{key:item.get(key) for key in self._selected_fields if item.get(key) is not None}
+                  for item in items]
+
+        return items
+
     def _build_plan(self) -> list:
         plan = []
 
@@ -238,6 +256,8 @@ class Query:
             plan.append("offset")
         if self._limit is not None:
             plan.append("limit")
+        if len(self._selected_fields) != 0:
+            plan.append("select")
 
         return plan
 
@@ -255,6 +275,8 @@ class Query:
                 result = self._apply_offset(result)
             elif step == "limit":
                 result = self._apply_limit(result)
+            elif step == "select":
+                result = self._apply_select(result)
 
         return result
 

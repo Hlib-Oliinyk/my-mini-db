@@ -201,3 +201,27 @@ def test_query_with_different_operations_order(db):
     test2 = users.query().order_by("age").offset(1).filter(name__contains="ib").limit(2).all()
 
     assert test1 == test2
+
+
+def test_select(db):
+    table_name = "users"
+    users = db.create_table(table_name)
+
+    users.insert({"name": "Hlib1", "age": 19})
+    users.insert({"name": "Hlib2", "age": 18})
+
+    select_query = users.query().select("name", "age").all()
+    assert select_query == [{"name":"Hlib1", "age": 19}, {"name":"Hlib2", "age": 18}]
+
+
+def test_select_with_not_exist_key(db):
+    table_name = "users"
+    users = db.create_table(table_name)
+
+    users.insert({"name": "Hlib1", "age": 19})
+    users.insert({"name": "Hlib2", "age": 18})
+
+    select_query1 = users.query().select("name", "age", "size").all()
+    select_query2 = users.query().select("size").all()
+    assert select_query1 == [{"name":"Hlib1", "age": 19}, {"name":"Hlib2", "age": 18}]
+    assert select_query2 == []

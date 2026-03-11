@@ -30,5 +30,3 @@ print(index.storage)
 print(index.storage)
 # for i in users._indexes.values():
 #     print(i.storage)
-
-print(users.query().order_by("age").all())
