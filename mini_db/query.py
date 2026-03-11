@@ -146,10 +146,10 @@ class Query:
                     row["row_id"] = row_id
                     result.append(row)
 
-                if len(result) >= target_count:
+                if target_count is not None and len(result) >= target_count:
                     break
 
-            if len(result) >= target_count:
+            if target_count is not None and len(result) >= target_count:
                 break
 
         return result
@@ -261,6 +261,7 @@ class Query:
     @timer
     def _execute(self) -> list:
         plan = self._build_plan()
+        print(plan)
         result = self._run_plan(plan)
         return result
 

@@ -12,11 +12,11 @@ users.insert({"name":"Hlib", "age": 20})
 # users.insert({"name":"Hlib1", "age": 18})
 # users.insert({"name":"Hlib2", "age": 21})
 
-# users.create_index("age", index_type="range")
+users.create_index("age", index_type="range")
 # users.create_index("name", index_type="hash")
-users.create_index(("name", "age"), index_type="composite")
+# users.create_index(("name", "age"), index_type="composite")
 
-index = users._indexes[("name", "age")]
+index = users._indexes["age"]
 
 print(index.storage)
 
@@ -26,11 +26,9 @@ print(index.storage)
 # users.query().update({"name":"Hlib"}, {"name":"Glib"})
 # users.insert({"name":"Hlib", "age": 20})
 
-users.delete(1)
-users.delete(2)
 
 print(index.storage)
 # for i in users._indexes.values():
 #     print(i.storage)
 
-print(users.query().all())
+print(users.query().order_by("age").all())
