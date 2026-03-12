@@ -227,7 +227,9 @@ class Query:
 
     def _apply_select(self, items: list) -> list:
         if len(self._selected_fields) != 0:
-            if len(self._selected_fields) == 1 and all([item.get(key) for key in item] for item in items):
+            if len(self._selected_fields) == 1 and not all(
+                    [item.get(key) for key in self._selected_fields if item.get(key) is not None]
+                    for item in items):
                 return []
 
             items = [{key:item.get(key) for key in self._selected_fields if item.get(key) is not None}
