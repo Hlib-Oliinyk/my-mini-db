@@ -97,8 +97,9 @@ class Table:
                 value = tuple(row_value[f] for f in field)
                 index.add(row_id, value)
             else:
-                value = row_value[field]
-                index.add(row_id, value)
+                if row_value.get(field) is not None:
+                    value = row_value[field]
+                    index.add(row_id, value)
 
         self._indexes[field] = index
 

@@ -15,6 +15,16 @@ class Query:
         self._order_by: (str | None, str | None) = None
         self._offset: int | None = None
         self._selected_fields: list[tuple] = []
+        self._join: dict = {}
+
+    @staticmethod
+    def _merge_two_rows(row_one: dict, row_two: dict) -> dict:
+        merged = row_one.copy()
+
+        for key, value in row_two.items():
+            merged[key] = value
+
+        return merged
 
     @staticmethod
     def _clone_row(row_id: int, row_value: dict) -> dict:
@@ -34,6 +44,7 @@ class Query:
         query._order_by = deepcopy(self._order_by)
         query._offset = deepcopy(self._offset)
         query._selected_fields = deepcopy(self._selected_fields)
+        query._join = deepcopy(self._join)
 
         return query
 
@@ -114,6 +125,11 @@ class Query:
         new_query = self._clone_query()
         for arg in args:
             new_query._selected_fields.append(arg)
+        return new_query
+
+    def join(self, other_table, on: tuple):
+        new_query = self._clone_query()
+        new_query._join[other_table] = on
         return new_query
 
     def _finder(self) -> list:
@@ -237,10 +253,30 @@ class Query:
 
         return items
 
+    def _apply_join(self, items: list) -> list:
+        other_table, join_items = next(iter(self._join.items()))
+
+        left_filed, right_field = join_items
+
+        result = []
+
+        for item in items:
+            for row in other_table._rows.values():
+
+                if item.get(left_filed) is not None and row.get(right_field) is not None:
+                    if item[left_filed] == row[right_field]:
+                        merged = Query._merge_two_rows(item, row)
+                        result.append(merged)
+
+        return result
+
     def _build_plan(self) -> list:
         plan = []
 
         plan.append("finder")
+
+        if len(self._join) != 0:
+            plan.append("join")
 
         if self._order_by:
             order_by_filed = self._order_by[0]
@@ -271,6 +307,8 @@ class Query:
                 result = self._finder()
             elif step == "index_scan":
                 result = self._index_scan()
+            elif step == "join":
+                result = self._apply_join(result)
             elif step == "order_by":
                 result = self._apply_ordering(result)
             elif step == "offset":
