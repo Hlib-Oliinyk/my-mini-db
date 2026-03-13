@@ -225,3 +225,55 @@ def test_select_with_not_exist_key(db):
     select_query2 = users.query().select("size").all()
     assert select_query1 == [{"name":"Hlib1", "age": 19}, {"name":"Hlib2", "age": 18}]
     assert select_query2 == []
+
+
+def test_join(db):
+    table_name_users = "users"
+    table_name_posts = "posts"
+
+    users = db.create_table(table_name_users)
+
+    users.insert({"name": "Hlib1", "age": 19})
+    users.insert({"name": "Hlib2", "age": 18})
+
+    posts = db.create_table(table_name_posts)
+
+    posts.insert({"post_name": "Nice post", "author_id": 1})
+    posts.insert({"post_name": "Super post", "author_id": 2})
+
+    result = users.query().select("name", "post_name").join(posts, on=("row_id", "author_id")).all()
+    assert result == [{"name":"Hlib1", "post_name": "Nice post"}, {"name":"Hlib2", "post_name": "Super post"}]
+
+
+def test_post_with_no_exist_field(db):
+    table_name_users = "users"
+    table_name_posts = "posts"
+
+    users = db.create_table(table_name_users)
+
+    users.insert({"name": "Hlib1", "age": 19})
+    users.insert({"name": "Hlib2", "age": 18})
+
+    posts = db.create_table(table_name_posts)
+
+    posts.insert({"post_name": "Nice post", "author_id": 1})
+    posts.insert({"post_name": "Super post", "author_id": 2})
+
+    result = users.query().select("name", "post_likes").join(posts, on=("row_id", "author_id")).all()
+    assert result == [{"name":"Hlib1"}, {"name":"Hlib2"}]
+
+
+def test_join_without_select(db):
+    table_name_users = "users"
+    table_name_posts = "posts"
+
+    users = db.create_table(table_name_users)
+
+    users.insert({"name": "Hlib1", "age": 19})
+
+    posts = db.create_table(table_name_posts)
+
+    posts.insert({"post_name": "Nice post", "author_id": 1})
+
+    result = users.query().join(posts, on=("row_id", "author_id")).all()
+    assert result == [{"name":"Hlib1", "age": 19, "row_id": 1, "post_name": "Nice post", "author_id": 1}]

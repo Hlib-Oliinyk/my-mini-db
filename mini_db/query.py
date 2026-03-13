@@ -270,6 +270,20 @@ class Query:
 
         return result
 
+    def _choice_func(self, func_name: str):
+        funcs = {
+            "finder": self._finder,
+            "index_scan": self._index_scan,
+            "join": self._apply_join,
+            "order_by": self._apply_ordering,
+            "limit": self._apply_limit,
+            "offset": self._apply_offset,
+            "select": self._apply_select
+        }
+
+        result = funcs[func_name]
+        return result
+
     def _build_plan(self) -> list:
         plan = []
 
@@ -286,7 +300,7 @@ class Query:
 
                 if isinstance(index, RangeIndex):
                     plan.remove("finder")
-                    plan.append("index_scan")
+                    plan.insert(0, "index_scan")
             else:
                 plan.append("order_by")
 
@@ -303,20 +317,12 @@ class Query:
         result = None
 
         for step in plan:
-            if step == "finder":
-                result = self._finder()
-            elif step == "index_scan":
-                result = self._index_scan()
-            elif step == "join":
-                result = self._apply_join(result)
-            elif step == "order_by":
-                result = self._apply_ordering(result)
-            elif step == "offset":
-                result = self._apply_offset(result)
-            elif step == "limit":
-                result = self._apply_limit(result)
-            elif step == "select":
-                result = self._apply_select(result)
+            func = self._choice_func(step)
+
+            if result is None:
+                result = func()
+            else:
+                result = func(result)
 
         return result
 
