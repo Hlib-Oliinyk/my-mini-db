@@ -2,7 +2,7 @@
 class Matcher:
 
     @staticmethod
-    def _matches(row_data: dict, filters: list) -> bool:
+    def matches(row_data: dict, filters: list) -> bool:
         for f in filters:
             for key, value in f.items():
                 if "__" in key:
@@ -32,7 +32,7 @@ class Matcher:
         return True
 
     @staticmethod
-    def _match_operators(_filter: dict):
+    def match_operators(_filter: dict):
         for key, value in _filter.items():
             if "__" in key:
                 field, operator = key.split("__")
@@ -43,7 +43,7 @@ class Matcher:
             return operator, field, value
 
     @staticmethod
-    def _filter_map(filters: list) -> dict:
+    def filter_map(filters: list) -> dict:
         result = {}
 
         for _filter in filters:

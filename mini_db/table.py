@@ -1,7 +1,7 @@
 from .indexes.composite_index import CompositeIndex
 from .indexes.factory import IndexFactory
 from .indexes.index_base import IndexBase
-from .query import Query
+from mini_db.query.query import Query
 from .exceptions import IndexAlreadyExists
 
 

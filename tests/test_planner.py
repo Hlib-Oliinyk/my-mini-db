@@ -1,6 +1,7 @@
 import pytest
 
 from mini_db.database import Database
+from mini_db.query.query_executor import QueryExecutor
 
 
 @pytest.fixture
@@ -20,7 +21,8 @@ def test_get_candidate_ids_without_index(db):
     users_query_filters = users_query._filters
     assert users_query_filters == [{"name": "Hlib"}]
 
-    get_candidate_ids = users_query._get_candidate_ids(users_query._filters)
+    query_state = users_query._create_query_state()
+    get_candidate_ids = QueryExecutor(query_state).get_candidate_ids(users_query._filters)
     assert get_candidate_ids == {1,2,3}
 
 
@@ -35,7 +37,9 @@ def test_get_candidate_ids_with_index(db):
     users.create_index("name", "hash")
 
     users_query = users.query().filter(name="Hlib")
-    get_candidate_ids = users_query._get_candidate_ids(users_query._filters)
+    query_state = users_query._create_query_state()
+
+    get_candidate_ids = QueryExecutor(query_state).get_candidate_ids(users_query._filters)
     assert get_candidate_ids == {1,2}
 
 
@@ -76,7 +80,9 @@ def test_index_intersection(db):
     users.create_index("age", "range")
 
     users_query = users.query().filter(name="Hlib").filter(age__gt=18)
-    get_candidate_ids = users_query._get_candidate_ids(users_query._filters)
+    query_state = users_query._create_query_state()
+
+    get_candidate_ids = QueryExecutor(query_state).get_candidate_ids(users_query._filters)
     assert get_candidate_ids == {2}
 
 
@@ -90,7 +96,9 @@ def test_get_candidate_ids_without_match_in_index(db):
     users.create_index("name", "hash")
 
     users_query = users.query().filter(name="Hlib1")
-    get_candidate_ids = users_query._get_candidate_ids(users_query._filters)
+    query_state = users_query._create_query_state()
+
+    get_candidate_ids = QueryExecutor(query_state).get_candidate_ids(users_query._filters)
     assert get_candidate_ids == set()
 
 
@@ -102,7 +110,9 @@ def test_get_candidate_ids_full_scan(db):
     users.insert({"name":"Hlib", "age": 19})
 
     users_query = users.query().filter(age=20)
-    get_candidate_ids = users_query._get_candidate_ids(users_query._filters)
+    query_state = users_query._create_query_state()
+
+    get_candidate_ids = QueryExecutor(query_state).get_candidate_ids(users_query._filters)
     assert get_candidate_ids == {1,2}
 
 
@@ -116,7 +126,9 @@ def test_get_candidate_ids_with_composite_index(db):
     users.create_index(("name", "age"), "composite")
 
     users_query = users.query().filter(name="Hlib").filter(age=18)
-    get_candidate_ids = users_query._get_candidate_ids(users_query._filters)
+    query_state = users_query._create_query_state()
+
+    get_candidate_ids = QueryExecutor(query_state).get_candidate_ids(users_query._filters)
     assert get_candidate_ids == {1}
 
 
@@ -131,7 +143,8 @@ def test_no_match_composite_index(db):
     users.create_index(("name", "age"), "composite")
 
     users_query = users.query().filter(name="Hlib")
-    assert users_query._get_candidate_ids(users_query._filters) == {1,2,3}
+    query_state = users_query._create_query_state()
+    assert QueryExecutor(query_state).get_candidate_ids(users_query._filters) == {1,2,3}
 
 
 def test_build_plan(db):

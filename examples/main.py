@@ -34,7 +34,6 @@ print(index.storage)
 # for i in users._indexes.values():
 #     print(i.storage)
 
+x = users.query()._query_executor
 
-x = users.query().filter(name="Hlib", age=17).all()
-
-print(x)
+y = users.query().filter(name="Hlib")._query_executor
