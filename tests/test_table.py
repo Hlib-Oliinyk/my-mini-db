@@ -49,7 +49,7 @@ def test_drop_table(db):
 
 
 def test_drop_not_exist_table(db):
-    assert db.drop_table("users") is None
+    assert db.drop_table("users") == False
 
 
 def test_drop_table_with_data(db):

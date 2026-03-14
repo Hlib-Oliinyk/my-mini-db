@@ -20,7 +20,7 @@ class Table:
 
             if isinstance(index, CompositeIndex):
                 if all(self._rows[row_id].get(key) for key in field):
-                    value = tuple(self._rows[row_id].values())
+                    value = tuple(self._rows[row_id][f] for f in field)
                     index.add(row_id, value)
             else:
                 if field in self._rows[row_id]:

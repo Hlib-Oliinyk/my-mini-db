@@ -16,7 +16,9 @@ class Database:
     def get_table(self, table_name: str) -> Table | None:
         return self._tables.get(table_name)
 
-    def drop_table(self, table_name: str) -> bool | None:
+    def drop_table(self, table_name: str) -> bool:
         if self.get_table(table_name):
             self._tables.pop(table_name)
             return True
+
+        return False

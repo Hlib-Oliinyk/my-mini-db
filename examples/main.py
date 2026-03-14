@@ -7,7 +7,7 @@ users = db.create_table("users")
 
 users.insert({"name":"Hlib", "age": 20})
 users.insert({"name":"Glib", "age": 22})
-users.insert({"name":"Glib", "age": 17})
+users.insert({"name":"Hlib", "age": 17})
 
 
 users.create_index("age", index_type="range")
@@ -35,4 +35,6 @@ print(index.storage)
 #     print(i.storage)
 
 
-print(users.query().order_by("age").join(posts, on=("name", "author_id")).select("name").all())
+x = users.query().filter(name="Hlib", age=17).all()
+
+print(x)

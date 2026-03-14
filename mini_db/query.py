@@ -95,7 +95,11 @@ class Query:
 
     def filter(self, **kwargs):
         new_query = self._clone_query()
-        new_query._filters.append(kwargs)
+
+        for key, value in kwargs.items():
+            new_filter = {key:value}
+            new_query._filters.append(new_filter)
+
         return new_query
 
     def limit(self, limit_num: int):
@@ -190,11 +194,6 @@ class Query:
         return target_count
 
     def _apply_ordering(self, items: list) -> list:
-        sorted_items = []
-        find_ids = set(row["row_id"] for row in items)
-
-        target_count = self._count_targets()
-
         if self._order_by:
             order_by_field = self._order_by[0]
             order_by_type = self._order_by[1]
@@ -202,32 +201,10 @@ class Query:
             if items and order_by_field not in items[0]:
                 raise KeyNotExist(f"Key '{order_by_field}' not exists")
 
-            if order_by_field in self._table._indexes:
-                index = self._table._indexes[order_by_field]
-                sorted_keys = index.sorted_keys
-
-                if order_by_type == "desc":
-                    sorted_keys = reversed(sorted_keys)
-
-                if isinstance(index, RangeIndex):
-                    for key in sorted_keys:
-                        for row_id in index.storage[key]:
-
-                            if row_id in find_ids:
-                                sorted_items.append(self._table._rows[row_id])
-
-                                if target_count is not None and len(sorted_items) >= target_count:
-                                    break
-
-                        if target_count is not None and len(sorted_items) >= target_count:
-                            break
-
-                    items = sorted_items
+            if order_by_type == "desc":
+                items = sorted(items, key=lambda x: x[order_by_field], reverse=True)
             else:
-                if order_by_type == "desc":
-                    items = sorted(items, key=lambda x: x[order_by_field], reverse=True)
-                else:
-                    items = sorted(items, key=lambda x: x[order_by_field])
+                items = sorted(items, key=lambda x: x[order_by_field])
 
         return items
 
