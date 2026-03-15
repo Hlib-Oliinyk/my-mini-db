@@ -1,4 +1,6 @@
 import time
+import logging
+
 
 def timer(func):
     def wrapper(*args, **kwargs):
@@ -6,6 +8,6 @@ def timer(func):
         result = func(*args, **kwargs)
         end = time.time()
 
-        print(end - start)
+        logging.debug(f"Time: {end - start:.4f}s")
         return result
     return wrapper

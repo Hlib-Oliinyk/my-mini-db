@@ -1,6 +1,7 @@
 from mini_db.matcher import Matcher
 from mini_db.indexes.composite_index import CompositeIndex
 from mini_db.exceptions import KeyNotExist
+from mini_db.utils import timer
 
 
 class QueryExecutor:
@@ -183,6 +184,7 @@ class QueryExecutor:
         result = funcs[func_name]
         return result
 
+    @timer
     def run_plan(self, plan: list) -> list:
         result = None
 

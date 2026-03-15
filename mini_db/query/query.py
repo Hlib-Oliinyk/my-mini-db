@@ -3,7 +3,6 @@ from copy import deepcopy
 
 from mini_db.matcher import Matcher
 from mini_db.exceptions import RowNotExists, MultipleObjectReturn
-from mini_db.utils import timer
 from .query_executor import QueryExecutor
 from .query_planner import build_execution_plan
 
@@ -29,16 +28,6 @@ class Query:
         self._offset: int | None = None
         self._selected_fields: list[tuple] = []
         self._join: dict = {}
-
-    @staticmethod
-    def _clone_row(row_id: int, row_value: dict) -> dict:
-        new_row = {}
-
-        new_row["id"] = row_id
-        for key, value in row_value.items():
-            new_row[key] = value
-
-        return new_row
 
     def _clone_query(self):
         query = Query(self._table)
@@ -113,7 +102,6 @@ class Query:
         plan = build_execution_plan(query_state)
         return plan
 
-    @timer
     def _execute(self) -> list:
         plan = self._build_plan()
         query_state = self._create_query_state()
