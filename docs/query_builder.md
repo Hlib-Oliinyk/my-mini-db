@@ -53,9 +53,15 @@ users.query().join(posts, on=("row_id", "author_id"))
 ## Execution methods
 
 **all** — returns list of all matching rows
+
 **first** — returns first matching row or None
+
 **count** — returns number of matching rows
+
 **exists** — returns True if any matching rows exist
+
 **get** — returns single row, raises exception if not found or multiple found
+
 **update** — updates matching rows
+
 **explain** — returns execution plan without running the query
