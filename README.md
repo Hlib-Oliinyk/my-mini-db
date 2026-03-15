@@ -38,22 +38,19 @@ See [examples](examples/) folder for detailed usage examples:
 
 ## Architecture
 
-**Database** - manages tables, creates and drops them
+**Database** — manages tables, creates and drops them
 
-**Table** - stores rows and indexes, handles insert, update, delete
+**Table** — stores rows and indexes, handles insert, update, delete
 
-**Query** - immutable query builder, each method returns a new Query object
+**Query** — immutable query builder, each method returns a new Query object. See [Query Builder](docs/query_builder.md)
 
-**QueryState** - snapshot of query parameters passed to planner and executor
+**QueryState** — snapshot of query parameters passed to planner and executor
 
-**QueryPlanner** - builds execution plan based on available indexes
+**QueryPlanner** — builds execution plan based on available indexes. See [Query Planner](docs/query_planner.md)
 
-**QueryExecutor** - executes the plan step by step
+**QueryExecutor** — executes the plan step by step. See [Query Executor](docs/query_executor.md)
 
-**Indexes** - three types:
-- `HashIndex` - O(1) lookup, supports only equality operator
-- `RangeIndex` - sorted keys via bisect, supports gt, lt, eq operators
-- `CompositeIndex` - multi-field equality lookup
+**Indexes** — hash, range and composite. See [Indexes](docs/indexes.md)
 
 ## Limitations
 
